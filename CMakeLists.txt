@@ -33,11 +33,17 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 ########################################################################
 # Compiler specific setup
 ########################################################################
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG ("-msse2" SSE2_SUPPORTED)
+
 if(NOT WIN32)
     #http://gcc.gnu.org/wiki/Visibility
     add_definitions(-fvisibility=hidden)
     add_definitions(-std=c++0x)
-    add_definitions(-msse2)
+
+    if(SSE2_SUPPORTED)
+        add_definitions(-msse2)
+    endif(SSE2_SUPPORTED)
 endif()
 
 ########################################################################

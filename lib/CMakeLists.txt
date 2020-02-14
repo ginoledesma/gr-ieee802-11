@@ -19,6 +19,13 @@
 # Setup library
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG ("-msse2" SSE2_SUPPORTED)
+
+if(SSE2_SUPPORTED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+    add_definitions(-DIEEE80211_MSSE2)
+endif(SSE2_SUPPORTED)
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/generate_helper.py "
 #!${PYTHON_EXECUTABLE}
@@ -111,8 +118,19 @@ list(APPEND gr_ieee802_11_sources
     sync_long.cc
     sync_short.cc
     utils.cc
-    viterbi_decoder.cc
+    viterbi_decoder/base.cc
 )
+
+# use SSE2 optimized viterbi implementation if SSE2 is enabled
+if(SSE2_SUPPORTED)
+    list(APPEND ieee802_11_sources
+        viterbi_decoder/viterbi_decoder_x86.cc
+    )
+else()
+    list(APPEND ieee802_11_sources
+        viterbi_decoder/viterbi_decoder_generic.cc
+    )
+endif(SSE2_SUPPORTED)
 
 list(APPEND gr_ieee802_11_libs
     ${Boost_LIBRARIES}
